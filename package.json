@@ -1,0 +1,16 @@
+{
+  "name": "bridge-vanilla-tile",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite --port 3000",
+    "build": "vite build",
+    "preview": "vite preview --port 3000"
+  },
+  "dependencies": {
+    "@arrowhealth/bridge-sdk": "^2.9.1"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

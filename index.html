@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Bridge Tile — Vanilla</title>
+    <style>
+      /* plain black background, white JSON text */
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: #000;
+        color: #fff;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial;
+      }
+      main {
+        padding: 20px;
+      }
+      h1 {
+        margin: 0 0 16px 0;
+        font-size: 20px;
+        font-weight: 600;
+        color: #fff;
+      }
+      pre {
+        background: transparent;
+        color: #fff;
+        font-size: 13px;
+        line-height: 1.4;
+        white-space: pre-wrap;
+        word-break: break-word;
+        max-height: calc(100vh - 120px);
+        overflow: auto;
+      }
+      .muted {
+        opacity: 0.8;
+        font-size: 13px;
+        margin-bottom: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1 id="title">Hello world</h1>
+      <div class="muted" id="mode">loading...</div>
+      <pre id="out">waiting for patient...</pre>
+    </main>
+
+    <!-- Vite module entry -->
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
