@@ -1,91 +1,74 @@
-// src/main.js
-// - stores patient JSON in sessionStorage as 'patient'
+// - stores patient JSON in sessionStorage as 'patient' (via tile manager)
 // - supports two logical routes: '/' and '/tile' (detects location.pathname)
 
 import { getPatient, onPatientChanged } from "@arrowhealth/bridge-sdk";
+import { initializeTileState, reactToPatientChange } from "./tile.js";
 
 const out = document.getElementById("out");
 const title = document.getElementById("title");
-const mode = document.getElementById("mode");
 
+//make rednered patient object look nice - demo purposes only
 function pretty(obj) {
-  try {
-    return JSON.stringify(obj, null, 2);
-  } catch (e) {
-    return String(obj);
-  }
+  return JSON.stringify(obj, null, 2);
 }
+
+/**
+ *  - Root path ("/"):
+ *      - no patient -> Title: "Default Page", out: no-patient explanatory line
+ *      - patient -> Title: "Patient Page", out: explanatory line + JSON
+ *  - Tile path is controlled by tile.js, main still hydrates out content but tile will be visible on /tile
+ */
 
 function renderPatient(patient) {
-  if (!patient) {
-    out.textContent = "No patient is available (getPatient returned null).";
-    return;
+  try {
+    // let tile manager handle sessionStorage + tile state/background
+    reactToPatientChange(patient);
+  } catch (e) {
+    console.warn("reactToPatientChange failed:", e);
   }
-  out.textContent = pretty(patient);
+
+  const path = (window.location.pathname || "/").replace(/\/+$/, "") || "/";
+
+  if (path === "/") {
+    if (!patient) {
+      if (title) title.textContent = "Default Page";
+      out.textContent =
+        "This Panel will display when there is no patient detected. (getPatient returned null).";
+      return;
+    } else {
+      if (title) title.textContent = "Patient Page";
+      out.textContent =
+        "The patient object will be fully available for patient evaluation or data transmission.\n\n\n\n" +
+        pretty(patient);
+      return;
+    }
+  }
+
+  // Non-root paths (except /tile) - fallback to default
+  if (title) title.textContent = "Default Panel";
+  out.textContent = patient
+    ? pretty(patient)
+    : "This Panel will display when there is no patient detected. (getPatient returned null).";
 }
 
-function setModeText() {
-  const path = window.location.pathname || "/";
-  if (path === "/" || path === "") {
-    title.textContent = "Hello world";
-    mode.textContent = "Mode: root ( / )";
-  } else if (path === "/tile" || path === "/tile/") {
-    title.textContent = "Tile Mode";
-    mode.textContent = "Mode: tile ( /tile )";
-  } else {
-    title.textContent = "Hello world";
-    mode.textContent = "Mode: " + path;
-  }
-}
-
-async function initializeTileSimple() {
-  setModeText();
-  console.log("initializeTile (simple) — calling getPatient()");
+async function initializeTile() {
+  // initialize tile manager (hydrates tile background/letter if /tile)
+  initializeTileState({
+    hydrateFromSession: true,
+  });
 
   try {
     const patient = await getPatient();
-    console.log("getPatient ->", patient);
-    if (patient) {
-      sessionStorage.setItem("patient", JSON.stringify(patient));
-      renderPatient(patient);
-    } else {
-      sessionStorage.removeItem("patient");
-      renderPatient(null);
-    }
+    renderPatient(patient);
   } catch (err) {
     console.error("getPatient() error:", err);
     out.textContent =
       "getPatient() error: " + (err && err.message ? err.message : String(err));
   }
 
-  // register listener for patient changes if available
-  let off;
-  try {
-    off = onPatientChanged((patient) => {
-      console.log("onPatientChanged ->", patient);
-      if (patient) {
-        sessionStorage.setItem("patient", JSON.stringify(patient));
-        renderPatient(patient);
-      } else {
-        sessionStorage.removeItem("patient");
-        renderPatient(null);
-      }
-    });
-  } catch (e) {
-    // onPatientChanged may not be available in local browser dev environment
-    console.warn("onPatientChanged not available or failed to register:", e);
-  }
-
-  // cleanup on unload
-  window.addEventListener("beforeunload", () => {
-    if (typeof off === "function") {
-      try {
-        off();
-      } catch (e) {
-        /* ignore */
-      }
-    }
+  onPatientChanged((patient) => {
+    renderPatient(patient);
   });
 }
 
-window.addEventListener("DOMContentLoaded", () => initializeTileSimple());
+window.addEventListener("DOMContentLoaded", () => initializeTile());
