@@ -1,4 +1,4 @@
-# bridgeStarterKit
+#basic-demo
 
 A small, friendly demo kit for building Bridge-based apps and integrations.
 
